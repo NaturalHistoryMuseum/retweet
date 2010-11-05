@@ -22,10 +22,13 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args){
+        if(args.length == 0){
+            System.out.println("Usage: java -jar reTweet.jar username [token secret-token]");
+        }
         // Recent reTweets
         BigInteger[] hundredRecent = new BigInteger[100];
         OAuthSignpostClient oauthClient;
-        if(args.length<2){
+        if(args.length<3){
             String pin = null;
             oauthClient = new OAuthSignpostClient("6JazZzBkKYOyow6c8dNJWQ", "HkNtxnkyCQ01tmDqFrvTdIpmEG9Gi5cFAe69JMHDQ", "oob");
             // Open the authorisation page in the user's browser
@@ -49,11 +52,11 @@ public class Main {
             System.out.println(accessToken[0]);
             System.out.println(accessToken[1]);
         } else {
-            oauthClient = new OAuthSignpostClient("6JazZzBkKYOyow6c8dNJWQ", "HkNtxnkyCQ01tmDqFrvTdIpmEG9Gi5cFAe69JMHDQ", args[0], args[1]);
+            oauthClient = new OAuthSignpostClient("6JazZzBkKYOyow6c8dNJWQ", "HkNtxnkyCQ01tmDqFrvTdIpmEG9Gi5cFAe69JMHDQ", args[1], args[2]);
         }
 
 	// Make a Twitter object
-	Twitter twitter = new Twitter("my-name", oauthClient);
+	Twitter twitter = new Twitter(args[0], oauthClient);
 
 	// Go into a loop, sleeping for five minutes each time.
 	List searchResults;
@@ -65,36 +68,38 @@ public class Main {
 	    while(searchResultsIterator.hasNext()){
 		resultStatus = (Status)searchResultsIterator.next();
 		BigInteger idToRetweet = resultStatus.getId();
+                System.out.println(resultStatus.getText());
                 Boolean alreadyTweeted = false;
                 Boolean insertedIntoHundred = false;
+                // Move elements down before trying to add, this means they'll
+                // always get added!
+                if(hundredRecent[hundredRecent.length-1]!=null){
+                    System.out.println("100 Tweets stored, removing earliest");
+                    for(int i = 0; i<hundredRecent.length-1; i++){
+                        hundredRecent[i] = hundredRecent[i+1];
+                    }
+                    hundredRecent[hundredRecent.length-1] = null;
+                }
                 for(int i=0; i<hundredRecent.length; i++){
                     if(hundredRecent[i] == null){
                         hundredRecent[i] = idToRetweet;
-                        insertedIntoHundred = true;
+                        try{
+                            twitter.follow(resultStatus.getUser());
+                            if(twitter.follow(resultStatus.getUser().getScreenName()) != null){
+                                System.out.println("Now following: "+resultStatus.getUser().getScreenName());
+                            } else {
+                                System.out.println("Attempt to follow '"+resultStatus.getUser().getScreenName()+"' failed");
+                            }
+                            System.out.println("Retweeting: "+resultStatus.getText()+"...");
+                            twitter.retweet(resultStatus);
+                        }
+                        catch(Exception e){
+                            ;// Do nothing - usually a twitter error or similar
+                        }
                         i=hundredRecent.length;
-                        alreadyTweeted = false;
                     }
                     else if(idToRetweet.compareTo(hundredRecent[i]) == 0){
-                        alreadyTweeted = true;
-                        insertedIntoHundred = true;
                         i = hundredRecent.length;
-                    }
-                }
-                if(!insertedIntoHundred){
-                    System.out.println("More than 100 recent tweets, dropping oldest tweet");
-                    // Move everything down one
-                    for(int i = 0; i<99; i++){
-                        hundredRecent[i] = hundredRecent[i+1];
-                    }
-                    hundredRecent[99] = idToRetweet;
-                }
-                if(!alreadyTweeted){
-                    try{
-                        System.out.println("Retweeting: "+resultStatus.getText().substring(0, 50)+"...");
-                        twitter.retweet(resultStatus);
-                    }
-                    catch(Exception e){
-                        ;// Do nothing.
                     }
                 }
 	    }
