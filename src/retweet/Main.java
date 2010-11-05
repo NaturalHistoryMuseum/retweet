@@ -18,6 +18,8 @@ import winterwell.jtwitter.Twitter.Status;
  * @author simon
  */
 public class Main {
+
+    private static Integer numSearchResultsToParse = 28;
     /**
      * @param args the command line arguments
      */
@@ -65,7 +67,8 @@ public class Main {
 	while(true){
 	    searchResults = twitter.search("@vbrant");
 	    searchResultsIterator = searchResults.iterator();
-	    while(searchResultsIterator.hasNext()){
+            Integer positionInResults = 0;
+	    while(searchResultsIterator.hasNext() && positionInResults < numSearchResultsToParse){
 		resultStatus = (Status)searchResultsIterator.next();
 		BigInteger idToRetweet = resultStatus.getId();
                 System.out.println(resultStatus.getText());
@@ -102,6 +105,7 @@ public class Main {
                         i = hundredRecent.length;
                     }
                 }
+                positionInResults ++;
 	    }
             try{
                 Thread.currentThread().sleep(300000);
