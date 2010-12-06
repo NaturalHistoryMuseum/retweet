@@ -25,7 +25,7 @@ public class Main {
      */
     public static void main(String[] args){
         if(args.length == 0){
-            System.out.println("Usage: java -jar reTweet.jar username [token secret-token]");
+            System.err.println("Usage: java -jar reTweet.jar username [token secret-token]");
         }
         // Recent reTweets
         BigInteger[] hundredRecent = new BigInteger[100];
@@ -44,7 +44,7 @@ public class Main {
             try {
                 pin = br.readLine();
             } catch (java.io.IOException ioe) {
-                System.out.println("IO error trying to read pin");
+                System.err.println("IO error trying to read pin");
                 System.exit(1);
             }
             oauthClient.setAuthorizationCode(pin);
@@ -92,14 +92,14 @@ public class Main {
                             if(twitter.follow(resultStatus.getUser().getScreenName()) != null){
                                 System.out.println("Now following: "+resultStatus.getUser().getScreenName());
                             } else {
-                                System.out.println("Attempt to follow '"+resultStatus.getUser().getScreenName()+"' failed");
+                                System.err.println("Attempt to follow '"+resultStatus.getUser().getScreenName()+"' failed");
                             }
-                            System.out.println("Retweeting: "+resultStatus.getText()+"...");
+                            System.out.println("\tRetweeting: "+resultStatus.getText()+"...");
                             twitter.retweet(resultStatus);
                         }
                         catch(Exception e){
                             ;// Do nothing - usually a twitter error or similar
-                            //System.out.println(e.getMessage());
+                            System.err.println(e.getMessage());
                         }
                         i=hundredRecent.length;
                     }
