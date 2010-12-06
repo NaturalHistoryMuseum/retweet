@@ -54,7 +54,7 @@ public class Main {
             System.out.println(accessToken[0]);
             System.out.println(accessToken[1]);
         } else {
-            oauthClient = new OAuthSignpostClient("6JazZzBkKYOyow6c8dNJWQ", "HkNtxnkyCQ01tmDqFrvTdIpmEG9Gi5cFAe69JMHDQ", args[1], args[2]);
+            oauthClient = new OAuthSignpostClient("6JazZzBkKYOyow6c8dNJWQ", "HkNtxnkyCQ01tmDqFrvTdIpmEG9Gi5cFAe69JMHDQ", args[2], args[3]);
         }
 
 	// Make a Twitter object
@@ -65,13 +65,14 @@ public class Main {
 	Iterator searchResultsIterator;
 	Status resultStatus;
 	while(true){
-	    searchResults = twitter.search("@vbrant");
+            System.out.println("Searching for: "+args[1]);
+	    searchResults = twitter.search(args[1]);
 	    searchResultsIterator = searchResults.iterator();
             Integer positionInResults = 0;
 	    while(searchResultsIterator.hasNext() && positionInResults < numSearchResultsToParse){
 		resultStatus = (Status)searchResultsIterator.next();
 		BigInteger idToRetweet = resultStatus.getId();
-                System.out.println(resultStatus.getText());
+                System.out.println("\t"+resultStatus.getText());
                 Boolean alreadyTweeted = false;
                 Boolean insertedIntoHundred = false;
                 // Move elements down before trying to add, this means they'll
@@ -98,6 +99,7 @@ public class Main {
                         }
                         catch(Exception e){
                             ;// Do nothing - usually a twitter error or similar
+                            //System.out.println(e.getMessage());
                         }
                         i=hundredRecent.length;
                     }
