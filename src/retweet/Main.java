@@ -125,6 +125,7 @@ public class Main {
                                     twitter.follow(resultStatus.getUser());
                                     if (twitter.follow(resultStatus.getUser().getScreenName()) != null) {
                                         System.out.println("Now following: " + resultStatus.getUser().getScreenName());
+                                        friends = twitter.getFriendIDs();
                                     } else {
                                         System.err.println("Attempt to follow '" + resultStatus.getUser().getScreenName() + "' failed");
                                     }
