@@ -68,8 +68,10 @@ public class Main {
         Status resultStatus;
         // Get a list of this user's friends, so that we don't try to friend
         // somebody they've already friended!
-        List friends = twitter.getFriendIDs();
-        Iterator friedsIterator;
+        List friends = twitter.getFriends();
+        Iterator friendsIterator;
+        Boolean friendsWith = false;
+        Twitter.User tweeter;
         // Split the search string to allow us to check for each term in the search
         String[] searchParts = args[1].split(" ");
 
@@ -119,22 +121,30 @@ public class Main {
                         if (hundredRecent[i] == null) {
                             hundredRecent[i] = idToRetweet;
                             try {
-                                if (friends.contains(resultStatus.getUser().getId())) {
-                                    System.out.println("Already following: " + resultStatus.getUser().getScreenName());
+                                friendsIterator = friends.iterator();
+                                while (friendsIterator.hasNext()) {
+                                    tweeter = (Twitter.User) friendsIterator.next();
+                                    if (tweeter.getScreenName() == resultStatus.getUser().getScreenName()) {
+                                        friendsWith = true;
+                                        break;
+                                    }
+                                }
+                                if (!friendsWith) {
+                                    System.out.println("\t\tAlready following: " + resultStatus.getUser().getScreenName());
                                 } else {
                                     twitter.follow(resultStatus.getUser());
                                     if (twitter.follow(resultStatus.getUser().getScreenName()) != null) {
-                                        System.out.println("Now following: " + resultStatus.getUser().getScreenName());
-                                        friends = twitter.getFriendIDs();
+                                        System.out.println("\t\tNow following: " + resultStatus.getUser().getScreenName());
+                                        friends = twitter.getFriends();
                                     } else {
-                                        System.err.println("Attempt to follow '" + resultStatus.getUser().getScreenName() + "' failed");
+                                        System.err.println("\t\tAttempt to follow '" + resultStatus.getUser().getScreenName() + "' failed");
                                     }
                                 }
                                 System.out.println("\tRetweeting: " + resultStatus.getText() + "...");
                                 twitter.retweet(resultStatus);
                             } catch (Exception e) {
                                 ;// Do nothing - usually a twitter error or similar
-                                System.err.println(e.getMessage());
+                                //System.err.println(e.getMessage());
                             }
                             i = hundredRecent.length;
                         } else if (idToRetweet.compareTo(hundredRecent[i]) == 0) {
