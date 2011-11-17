@@ -66,6 +66,10 @@ public class Main {
         List searchResults;
         Iterator searchResultsIterator;
         Status resultStatus;
+        // Get a list of this user's friends, so that we don't try to friend
+        // somebody they've already friended!
+        List friends = twitter.getFriendIDs();
+        Iterator friedsIterator;
         // Split the search string to allow us to check for each term in the search
         String[] searchParts = args[1].split(" ");
 
@@ -115,11 +119,15 @@ public class Main {
                         if (hundredRecent[i] == null) {
                             hundredRecent[i] = idToRetweet;
                             try {
-                                twitter.follow(resultStatus.getUser());
-                                if (twitter.follow(resultStatus.getUser().getScreenName()) != null) {
-                                    System.out.println("Now following: " + resultStatus.getUser().getScreenName());
+                                if (friends.contains(resultStatus.getUser().getId())) {
+                                    System.out.println("Already following: " + resultStatus.getUser().getScreenName());
                                 } else {
-                                    System.err.println("Attempt to follow '" + resultStatus.getUser().getScreenName() + "' failed");
+                                    twitter.follow(resultStatus.getUser());
+                                    if (twitter.follow(resultStatus.getUser().getScreenName()) != null) {
+                                        System.out.println("Now following: " + resultStatus.getUser().getScreenName());
+                                    } else {
+                                        System.err.println("Attempt to follow '" + resultStatus.getUser().getScreenName() + "' failed");
+                                    }
                                 }
                                 System.out.println("\tRetweeting: " + resultStatus.getText() + "...");
                                 twitter.retweet(resultStatus);
