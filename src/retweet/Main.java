@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Iterator;
 import winterwell.jtwitter.OAuthSignpostClient;
 import winterwell.jtwitter.Twitter;
-import winterwell.jtwitter.Twitter.Status;
+import winterwell.jtwitter.User;
+import winterwell.jtwitter.Status;
 
 /**
  *
@@ -58,106 +59,106 @@ public class Main {
             System.out.println(accessToken[1]);
         } else {
             oauthClient = new OAuthSignpostClient(oAuthStringA, oAuthStringB, args[2], args[3]);
-        }
 
-        // Make a Twitter object
-        Twitter twitter = new Twitter(args[0], oauthClient);
-        // Go into a loop, sleeping for five minutes each time.
-        List searchResults;
-        Iterator searchResultsIterator;
-        Status resultStatus;
-        // Get a list of this user's friends, so that we don't try to friend
-        // somebody they've already friended!
-        List friends = twitter.getFriends();
-        Iterator friendsIterator;
-        Boolean friendsWith = false;
-        Twitter.User tweeter;
-        // Split the search string to allow us to check for each term in the search
-        String[] searchParts = args[1].split(" ");
+            // Make a Twitter object
+            Twitter twitter = new Twitter(args[0], oauthClient);
+            // Go into a loop, sleeping for five minutes each time.
+            List searchResults;
+            Iterator searchResultsIterator;
+            Status resultStatus;
+            // Get a list of this user's friends, so that we don't try to friend
+            // somebody they've already friended!
+            List friends = twitter.getFriends();
+            Iterator friendsIterator;
+            Boolean friendsWith = false;
+            User tweeter;
+            // Split the search string to allow us to check for each term in the search
+            String[] searchParts = args[1].split(" ");
 
-        while (true) {
-            System.out.println("Searching for: " + args[1]);
-            searchResults = twitter.search(args[1]);
-            searchResultsIterator = searchResults.iterator();
-            Integer positionInResults = 0;
-            while (searchResultsIterator.hasNext() && positionInResults < numSearchResultsToParse) {
-                // Get the twitter thingy
-                resultStatus = (Status) searchResultsIterator.next();
-                // Check against out search terms, as Twitter is a little shite
-                Boolean twitterFuckedUp = false;
-                for (int i = 0; i < searchParts.length && !twitterFuckedUp; i++) {
-                    if (searchParts[i].indexOf(":") < 0) {
-                        // Doesn't contain a colon, lets check that it is present (or not if the string starts with "-")
-                        if (searchParts[i].substring(0, 1) == "-") {
-                            // Check NOT in string
-                            if (resultStatus.getText().indexOf(searchParts[i]) >= 0) {
-                                // Doh, twitter fucked up
-                                twitterFuckedUp = true;
-                            }
-                        } else {
-                            // Check NOT in string
-                            if (resultStatus.getText().indexOf(searchParts[i]) < 0) {
-                                // Doh, twitter fucked up
-                                twitterFuckedUp = true;
-                            }
-                        }
-                    }
-                }
-                if (!twitterFuckedUp) {
-                    BigInteger idToRetweet = resultStatus.getId();
-                    System.out.println("\t" + resultStatus.getText());
-                    Boolean alreadyTweeted = false;
-                    Boolean insertedIntoHundred = false;
-                    // Move elements down before trying to add, this means they'll
-                    // always get added!
-                    if (hundredRecent[hundredRecent.length - 1] != null) {
-                        System.out.println("100 Tweets stored, removing earliest");
-                        for (int i = 0; i < hundredRecent.length - 1; i++) {
-                            hundredRecent[i] = hundredRecent[i + 1];
-                        }
-                        hundredRecent[hundredRecent.length - 1] = null;
-                    }
-                    for (int i = 0; i < hundredRecent.length; i++) {
-                        if (hundredRecent[i] == null) {
-                            hundredRecent[i] = idToRetweet;
-                            try {
-                                friendsIterator = friends.iterator();
-                                while (friendsIterator.hasNext()) {
-                                    tweeter = (Twitter.User) friendsIterator.next();
-                                    if (tweeter.getScreenName() == resultStatus.getUser().getScreenName()) {
-                                        friendsWith = true;
-                                        break;
-                                    }
+            while (true) {
+                System.out.println("Searching for: " + args[1]);
+                searchResults = twitter.search(args[1]);
+                searchResultsIterator = searchResults.iterator();
+                Integer positionInResults = 0;
+                while (searchResultsIterator.hasNext() && positionInResults < numSearchResultsToParse) {
+                    // Get the twitter thingy
+                    resultStatus = (Status) searchResultsIterator.next();
+                    // Check against out search terms, as Twitter is a little shite
+                    Boolean twitterFuckedUp = false;
+                    for (int i = 0; i < searchParts.length && !twitterFuckedUp; i++) {
+                        if (searchParts[i].indexOf(":") < 0) {
+                            // Doesn't contain a colon, lets check that it is present (or not if the string starts with "-")
+                            if (searchParts[i].substring(0, 1) == "-") {
+                                // Check NOT in string
+                                if (resultStatus.getText().indexOf(searchParts[i]) >= 0) {
+                                    // Doh, twitter fucked up
+                                    twitterFuckedUp = true;
                                 }
-                                if (!friendsWith) {
-                                    System.out.println("\t\tAlready following: " + resultStatus.getUser().getScreenName());
-                                } else {
-                                    twitter.follow(resultStatus.getUser());
-                                    if (twitter.follow(resultStatus.getUser().getScreenName()) != null) {
-                                        System.out.println("\t\tNow following: " + resultStatus.getUser().getScreenName());
-                                        friends = twitter.getFriends();
+                            } else {
+                                // Check NOT in string
+                                if (resultStatus.getText().indexOf(searchParts[i]) < 0) {
+                                    // Doh, twitter fucked up
+                                    twitterFuckedUp = true;
+                                }
+                            }
+                        }
+                    }
+                    if (!twitterFuckedUp) {
+                        BigInteger idToRetweet = resultStatus.getId();
+                        System.out.println("\t" + resultStatus.getText());
+                        Boolean alreadyTweeted = false;
+                        Boolean insertedIntoHundred = false;
+                        // Move elements down before trying to add, this means they'll
+                        // always get added!
+                        if (hundredRecent[hundredRecent.length - 1] != null) {
+                            System.out.println("100 Tweets stored, removing earliest");
+                            for (int i = 0; i < hundredRecent.length - 1; i++) {
+                                hundredRecent[i] = hundredRecent[i + 1];
+                            }
+                            hundredRecent[hundredRecent.length - 1] = null;
+                        }
+                        for (int i = 0; i < hundredRecent.length; i++) {
+                            if (hundredRecent[i] == null) {
+                                hundredRecent[i] = idToRetweet;
+                                try {
+                                    friendsIterator = friends.iterator();
+                                    while (friendsIterator.hasNext()) {
+                                        tweeter = (User) friendsIterator.next();
+                                        if (tweeter.getScreenName() == resultStatus.getUser().getScreenName()) {
+                                            friendsWith = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!friendsWith) {
+                                        System.out.println("\t\tAlready following: " + resultStatus.getUser().getScreenName());
                                     } else {
-                                        System.err.println("\t\tAttempt to follow '" + resultStatus.getUser().getScreenName() + "' failed");
+                                        twitter.follow(resultStatus.getUser());
+                                        if (twitter.follow(resultStatus.getUser().getScreenName()) != null) {
+                                            System.out.println("\t\tNow following: " + resultStatus.getUser().getScreenName());
+                                            friends = twitter.getFriends();
+                                        } else {
+                                            System.err.println("\t\tAttempt to follow '" + resultStatus.getUser().getScreenName() + "' failed");
+                                        }
                                     }
+                                    System.out.println("\tRetweeting: " + resultStatus.getText() + "...");
+                                    twitter.retweet(resultStatus);
+                                } catch (Exception e) {
+                                    ;// Do nothing - usually a twitter error or similar
+                                    //System.err.println(e.getMessage());
                                 }
-                                System.out.println("\tRetweeting: " + resultStatus.getText() + "...");
-                                twitter.retweet(resultStatus);
-                            } catch (Exception e) {
-                                ;// Do nothing - usually a twitter error or similar
-                                //System.err.println(e.getMessage());
+                                i = hundredRecent.length;
+                            } else if (idToRetweet.compareTo(hundredRecent[i]) == 0) {
+                                i = hundredRecent.length;
                             }
-                            i = hundredRecent.length;
-                        } else if (idToRetweet.compareTo(hundredRecent[i]) == 0) {
-                            i = hundredRecent.length;
                         }
                     }
+                    positionInResults++;
                 }
-                positionInResults++;
-            }
-            try {
-                Thread.currentThread().sleep(300000);
-            } catch (java.lang.InterruptedException e) {
-                ;// Do nothing
+                try {
+                    Thread.currentThread().sleep(300000);
+                } catch (java.lang.InterruptedException e) {
+                    ;// Do nothing
+                }
             }
         }
     }
